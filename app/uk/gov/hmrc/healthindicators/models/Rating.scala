@@ -56,14 +56,15 @@ object RatingType {
 
 trait Rating {
   def ratingType: RatingType
-  def rating: Int
+  def ratingReason: RatingReason
 }
 
 object Rating {
 
   val apiWrites: Writes[Rating] = (o: Rating) => {
     implicit val rtF = RatingType.format
-    Json.obj("ratingType" -> o.ratingType, "rating" -> o.rating)
+    implicit val rtR = RatingReason.format
+    Json.obj("ratingType" -> o.ratingType, "ratingReason" -> o.ratingReason)
   }
 
 

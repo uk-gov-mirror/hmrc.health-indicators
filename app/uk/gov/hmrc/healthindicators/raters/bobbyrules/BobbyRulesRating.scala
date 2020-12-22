@@ -34,21 +34,21 @@ package uk.gov.hmrc.healthindicators.raters.bobbyrules
 
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
-import uk.gov.hmrc.healthindicators.models.{Rating, RatingType}
+import uk.gov.hmrc.healthindicators.models.{Rating, RatingReason, RatingType}
 
 case class BobbyRulesRating(
       count: Int
   ) extends Rating {
     override def ratingType: RatingType = RatingType.BobbyRules
-    override def rating: Int    = BobbyRulesRating.calculate(this)
+    override def ratingReason: RatingReason   = BobbyRulesRating.calculate(this)
 }
 
 object BobbyRulesRating {
-    def calculate(bobbyRulesRating: BobbyRulesRating): Int =
+    def calculate(bobbyRulesRating: BobbyRulesRating): RatingReason =
         bobbyRulesRating.count match {
-            case 0 => 100
-            case 1 => 50
-            case _ => 0
+            case 0 => RatingReason(100, "No Violations")
+            case 1 => RatingReason(50, "1 Violation found")
+            case _ => RatingReason(0, s"Found ${bobbyRulesRating.count} Violations!")
                 //TODO: 0 -> 100, 1->0
         }
 
