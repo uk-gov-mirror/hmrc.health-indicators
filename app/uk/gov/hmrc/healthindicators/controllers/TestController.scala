@@ -16,37 +16,32 @@
 
 package uk.gov.hmrc.healthindicators.controllers
 
-import javax.inject.{Inject, Singleton}
-import play.api.libs.json.{Json, Writes}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.healthindicators.connectors.{JenkinsConnector, JenkinsUrl, LeakDetectionConnector, TeamsAndRepositoriesConnector}
-import uk.gov.hmrc.healthindicators.models.RepositoryRating
-import uk.gov.hmrc.healthindicators.persistence.HealthIndicatorsRepository
+import uk.gov.hmrc.healthindicators.connectors._
 import uk.gov.hmrc.healthindicators.services.HealthIndicatorService
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.{Await, ExecutionContext}
-import scala.concurrent.duration.DurationInt
+import javax.inject.{Inject, Singleton}
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class TestController @Inject() (
   leakDetectionConnector: LeakDetectionConnector,
-  repoRatingsPersistence: HealthIndicatorsRepository,
-  repository: HealthIndicatorsRepository,
   ratingService: HealthIndicatorService,
   teamsAndRepositoriesConnector: TeamsAndRepositoriesConnector,
   jenkinsConnector: JenkinsConnector,
+  githubConnector: GithubConnector,
   cc: ControllerComponents
 )(implicit ec: ExecutionContext)
     extends BackendController(cc) {
 
   def test(repo: String): Action[AnyContent] =
     Action.async {
-      implicit val hc: HeaderCarrier = HeaderCarrier()
+//      implicit val hc: HeaderCarrier = HeaderCarrier()
+//      implicit val or: Reads[OpenPR] = OpenPR.reads
       for {
-        url <- teamsAndRepositoriesConnector.getJenkinsUrl(repo)
-        result = Ok(Json.toJson(url))
+        openPR <- githubConnector.getOpenPRs(repo)
+        result = Ok(openPR.toString)
       } yield result
     }
 }

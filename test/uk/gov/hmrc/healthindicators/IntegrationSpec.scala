@@ -64,6 +64,7 @@ class IntegrationSpec
           "jenkins.token"                                     -> "test-token",
           "microservice.services.teams-and-repositories.port" -> endpointPort,
           "microservice.services.teams-and-repositories.host" -> host,
+          "github.rest.api.url"                               -> endpointMockUrl,
           "metrics.jvm"                                       -> false
         )
       )
@@ -102,6 +103,14 @@ class IntegrationSpec
         willRespondWith = (404, None)
       )
 
+      serviceEndpoint(
+        GET,
+        "/repos/hmrc/auth/pulls",
+        requestHeaders = Map("Authorization" -> s"token test-token"),
+        willRespondWith = (200,
+          Some("""[]""".stripMargin))
+      )
+
       eventually {
         val response = ws.url(s"http://localhost:$port/health-indicators/repositories/auth").get.futureValue
         response.status shouldBe 200
@@ -110,6 +119,7 @@ class IntegrationSpec
         response.body     should include(leakDetectionResponse)
         response.body     should include(readMeResponse)
         response.body     should include(buildStabilityResponse)
+        response.body     should include(openPRResponse)
       }
     }
   }
@@ -192,5 +202,8 @@ class IntegrationSpec
     """{"ratingType":"ReadMe","ratingScore":-50,"breakdown":[{"points":-50,"description":"No Readme defined"}]}"""
   val buildStabilityResponse =
     """{"ratingType":"BuildStability","ratingScore":0,"breakdown":[{"points":0,"description":"No Jenkins Build Found for: auth"}]}"""
+  val openPRResponse =
+    """{"ratingType":"OpenPR","ratingScore":0,"breakdown":[{"points":0,"description":"No Open PRs"}]}]}"""
+
   val expectedResponse = """"repositoryName":"auth","repositoryType":"Prototype","repositoryScore":-120,"""
 }
